@@ -12,7 +12,7 @@ int main(void) {
 
     printf("xnu-dark-corners: starting all labs\n\n");
 
-    printf("[LAB] VM \n");
+    printf("\n [LAB] VM \n");
     if (vm_run_all() != 0) {
         failures++;
     }
