@@ -4,6 +4,7 @@
 
 int vm_run_all(void);
 int ptrace_run_all(void);
+int proc_run_all(void);
 
 int main(void) {
     int failures = 0;
@@ -19,6 +20,12 @@ int main(void) {
     if (ptrace_run_all() != 0) {
         failures++;
     }
+
+    printf("\n [LAB] PROC \n");
+    if (proc_run_all() != 0) {
+        failures++;
+}
+
 
     printf("\nxnu-dark-corners: done. Lab failures: %d\n", failures);
     return failures == 0 ? 0 : 1;
