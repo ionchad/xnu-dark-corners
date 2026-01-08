@@ -31,7 +31,7 @@ int vm_run_all(void) {
 
     for (i = 0; i < vm_test_count; i++) {
         const char *name = vm_tests[i].name_fn();
-        printf("=== [VM %zu/%zu] %s ===\n", i + 1, vm_test_count, name);
+        printf("[VM %zu/%zu] %s \n", i + 1, vm_test_count, name);
         int ret = vm_tests[i].run_fn();
         if (ret == 0) {
             printf("[VM PASS] %s\n\n", name);
