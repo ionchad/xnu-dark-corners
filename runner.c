@@ -6,6 +6,8 @@ int vm_run_all(void);
 int ptrace_run_all(void);
 int proc_run_all(void);
 int signals_run_all(void);
+int syscalls_run_all(void);
+int mmap_run_all(void);
 
 int main(void) {
     int failures = 0;
@@ -31,6 +33,17 @@ int main(void) {
     if (signals_run_all() != 0) {
         failures++;
 }
+
+    printf("\n [LAB] SYSCALLS \n");
+    if (syscalls_run_all() != 0) {
+        failures++;
+}
+
+    printf("\n [LAB] MMAP-STRANGE \n");
+    if (mmap_run_all() != 0) {
+        failures++;
+}
+
 
     printf("\nxnu-dark-corners: done. Lab failures: %d\n", failures);
     return failures == 0 ? 0 : 1;
