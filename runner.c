@@ -8,6 +8,7 @@ int proc_run_all(void);
 int signals_run_all(void);
 int syscalls_run_all(void);
 int mmap_run_all(void);
+int iokit_run_all(void);
 
 int main(void) {
     int failures = 0;
@@ -43,6 +44,12 @@ int main(void) {
     if (mmap_run_all() != 0) {
         failures++;
 }
+
+   printf("\n [LAB] IOKIT \n");
+   if (iokit_run_all() != 0) {
+       failures++;
+}
+
 
 
     printf("\nxnu-dark-corners: done. Lab failures: %d\n", failures);

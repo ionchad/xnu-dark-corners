@@ -14,7 +14,7 @@ typedef struct {
 } ptrace_test_case;
 
 static ptrace_test_case ptrace_tests[] = {
-    // { test_name_ptrace_deny_attach, test_run_ptrace_deny_attach },  /* temporarily disabled */
+    { test_name_ptrace_deny_attach, test_run_ptrace_deny_attach },
     { test_name_ptrace_trace_me,    test_run_ptrace_trace_me    },
 };
 

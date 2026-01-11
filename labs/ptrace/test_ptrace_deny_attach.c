@@ -12,71 +12,82 @@
 #define PT_DENY_ATTACH 31
 #endif
 
+#ifndef PT_ATTACHEXC
+#define PT_ATTACHEXC 14
+#endif
+
 const char *test_name_ptrace_deny_attach(void) {
     return "ptrace_deny_attach";
 }
 
-int test_run_ptrace_deny_attach(void) {
+static int inner_ptrace_deny_attach(void) {
     pid_t pid = fork();
     if (pid < 0) {
-        perror("fork");
+        perror("fork(inner)");
         return -1;
     }
 
     if (pid == 0) {
-        printf("[ptrace_deny_attach] Child PID=%d calling PT_DENY_ATTACH\n",
-               getpid());
-
+        printf("[ptrace_deny_attach] Child PID=%d calling PT_DENY_ATTACH\n", getpid());
         int r = ptrace(PT_DENY_ATTACH, 0, 0, 0);
         if (r != 0) {
             int e = errno;
-            printf("[ptrace_deny_attach] Child: PT_DENY_ATTACH failed errno=%d (%s)\n",
-                   e, strerror(e));
+            printf("[ptrace_deny_attach] Child: PT_DENY_ATTACH failed errno=%d (%s)\n", e, strerror(e));
             _exit(1);
         }
-
         printf("[ptrace_deny_attach] Child: PT_DENY_ATTACH succeeded, looping...\n");
-        for (;;) {
-            sleep(1);
-        }
+        for (;;) sleep(1);
     }
 
-    sleep(1); 
 
-    printf("[ptrace_deny_attach] Parent: trying PT_ATTACHEXC to child PID=%d\n", pid);
-#ifdef PT_ATTACHEXC
+    sleep(1);
+    printf("[ptrace_deny_attach] Parent(inner): trying PT_ATTACHEXC to PID=%d\n", pid);
+
     int r = ptrace(PT_ATTACHEXC, pid, (caddr_t)1, 0);
-#else
-    int r = ptrace(PT_ATTACH, pid, 0, 0);
-#endif
     if (r != 0) {
         int e = errno;
-        printf("[ptrace_deny_attach] Parent: PT_ATTACH failed errno=%d (%s)\n",
-               e, strerror(e));
+        printf("[ptrace_deny_attach] Parent(inner): attach failed errno=%d (%s)\n", e, strerror(e));
     } else {
-        printf("[ptrace_deny_attach] Parent: PT_ATTACH succeeded (unexpected)\n");
+        printf("[ptrace_deny_attach] Parent(inner): attach succeeded (unexpected)\n");
     }
 
-    int status = 0;
-    pid_t w = waitpid(pid, &status, WNOHANG);
-    if (w == 0) {
-        printf("[ptrace_deny_attach] Parent: child still running\n");
-    } else if (w == pid) {
-        if (WIFSIGNALED(status)) {
-            printf("[ptrace_deny_attach] Parent: child died from signal %d\n",
-                   WTERMSIG(status));
-        } else if (WIFEXITED(status)) {
-            printf("[ptrace_deny_attach] Parent: child exited with code %d\n",
-                   WEXITSTATUS(status));
-        } else {
-            printf("[ptrace_deny_attach] Parent: child changed state (status=0x%x)\n",
-                   status);
-        }
-    } else {
-        perror("waitpid");
-    }
 
     kill(pid, SIGKILL);
-    waitpid(pid, NULL, 0);
+    int status;
+    waitpid(pid, &status, 0);
+    
+    if (WIFSIGNALED(status)) {
+        printf("[ptrace_deny_attach] Parent(inner): child killed by signal %d\n", WTERMSIG(status));
+    }
+
     return 0;
+}
+
+int test_run_ptrace_deny_attach(void) {
+    pid_t outer = fork();
+    if (outer < 0) {
+        perror("fork(outer)");
+        return -1;
+    }
+    
+    if (outer == 0) {
+        int rc = inner_ptrace_deny_attach();
+        _exit(rc == 0 ? 0 : 1);
+    }
+
+    
+    int status;
+    waitpid(outer, &status, 0);
+    
+    if (WIFSIGNALED(status)) {
+        printf("[ptrace_deny_attach] Test process died from signal %d (expected on macOS)\n", WTERMSIG(status));
+        return 0; 
+    } else if (WIFEXITED(status)) {
+        int code = WEXITSTATUS(status);
+        printf("[ptrace_deny_attach] Test process exited with code %d\n", code);
+        return code == 0 ? 0 : -1;
+    }
+
+    printf("[ptrace_deny_attach] Test process status=0x%x\n", status);
+    return -1;
 }
