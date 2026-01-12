@@ -9,6 +9,8 @@ int signals_run_all(void);
 int syscalls_run_all(void);
 int mmap_run_all(void);
 int iokit_run_all(void);
+int side_channels_run_all(void);
+int thread_races_run_all(void);
 
 int main(void) {
     int failures = 0;
@@ -50,6 +52,15 @@ int main(void) {
        failures++;
 }
 
+   printf("\n [LAB] SIDE-CHANNELS \n");
+   if (side_channels_run_all() != 0) {
+       failures++;
+}
+
+   printf("\n [LAB] THREAD-RACES \n");
+   if (thread_races_run_all() != 0) {
+       failures++;
+}
 
 
     printf("\nxnu-dark-corners: done. Lab failures: %d\n", failures);
