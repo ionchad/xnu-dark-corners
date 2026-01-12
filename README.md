@@ -8,7 +8,7 @@ Logs erros and sucesses or any unsual behavior
 ## building
 
 ```bash
-clang -Wall -Wextra -02 -o runner runner.c tests/*.c
+clang -Wall -Wextra -02 -o runner runner.c labs/*.c
 
 running
 ./runner
